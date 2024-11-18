@@ -1,0 +1,72 @@
+parameters:
+  - name: containerRegistry
+    type: string
+    default: "myContainerRegistry"
+    displayName: "Container Registry"
+    values:
+      - "myContainerRegistry"
+      - "anotherRegistry"
+
+  - name: imageName
+    type: string
+    default: "my-app"
+    displayName: "Docker Image Name"
+
+  - name: imageTag
+    type: string
+    default: "latest"
+    displayName: "Docker Image Tag"
+
+  - name: dockerfilePath
+    type: string
+    default: "Dockerfile"
+    displayName: "Path to Dockerfile"
+
+  - name: buildContext
+    type: string
+    default: "."
+    displayName: "Docker Build Context"
+
+  - name: enableBuildKit
+    type: boolean
+    default: false
+    displayName: "Enable BuildKit"
+
+  - name: additionalDockerArgs
+    type: string
+    default: ""
+    displayName: "Additional Docker Build Arguments"
+
+  - name: azureSubscription
+    type: string
+    default: "myAzureSubscription"
+    displayName: "Azure Subscription"
+
+steps:
+  - task: UseAzureCLI@2
+
+    displayName: "Login to Azure CLI"
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+
+  - script: |
+      echo "##vso[task.setvariable variable=REGISTRY_URL]$(az acr show --name ${{ parameters.containerRegistry }} --query loginServer -o tsv)"
+      echo "Logged in to Azure Container Registry: $(REGISTRY_URL)"
+    displayName: "Set Container Registry URL"
+
+  - script: |
+      docker login $(REGISTRY_URL) --username $(az acr credential show --name ${{ parameters.containerRegistry }} --query username -o tsv) \
+        --password $(az acr credential show --name ${{ parameters.containerRegistry }} --query passwords[0].value -o tsv)
+    displayName: "Docker Login"
+
+  - script: |
+      DOCKER_BUILDKIT=${{ parameters.enableBuildKit }} docker build \
+        -f ${{ parameters.dockerfilePath }} \
+        ${{ parameters.additionalDockerArgs }} \
+        -t $(REGISTRY_URL)/${{ parameters.imageName }}:${{ parameters.imageTag }} \
+        ${{ parameters.buildContext }}
+    displayName: "Build Docker Image"
+
+  - script: |
+      docker push $(REGISTRY_URL)/${{ parameters.imageName }}:${{ parameters.imageTag }}
+    displayName: "Push Docker Image"
