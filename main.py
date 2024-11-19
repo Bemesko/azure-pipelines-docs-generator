@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List, Optional
 from markdowngenerator import MarkdownGenerator
@@ -35,18 +35,20 @@ def load_pipeline_template(template_path: Path) -> list[Parameter]:
     return parameters
 
 
-def generate_markdown_table(parameters: list[Parameter]) -> None:
+def generate_pipeline_docs(parameters: list[Parameter]) -> None:
     with MarkdownGenerator(filename="output.md", enable_write=False) as output_doc:
         output_doc.addHeader(1, "Hello there!")
         output_doc.writeTextLine(f'{output_doc.addBoldedText("This is just a test.")}')
         output_doc.addHeader(2, "Second level header.")
-        table = [
-            {"Column1": "col1row1 data", "Column2": "col2row1 data"},
-            {"Column1": "col1row2 data", "Column2": "col2row2 data"},
-        ]
+
+        table = generate_markdown_table(parameters)
 
         output_doc.addTable(dictionary_list=table)
         output_doc.writeTextLine("Ending the document....")
+
+
+def generate_markdown_table(parameters: list[Parameter]) -> list[dict[str, str]]:
+    return [asdict(parameter) for parameter in parameters]
 
 
 def main():
@@ -54,7 +56,7 @@ def main():
         Path("sample_templates/docker-build-and-push.yml")
     )
 
-    generate_markdown_table(parameters)
+    generate_pipeline_docs(parameters)
 
     pass
 
