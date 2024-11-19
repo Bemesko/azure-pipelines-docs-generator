@@ -5,7 +5,7 @@
 
 ## Checklist
 
-- [ ] Get the YAML template in memory
-- [ ] Create objects with relevant information for each parameter
-- [ ] Generate markdown template
-- [ ] Generate table with parameters and their properties
+- [x] Get the YAML template in memory
+- [x] Create objects with relevant information for each parameter
+- [x] Generate markdown table with parameters and their properties
+- [ ] Put markdown table in the middle of a template
