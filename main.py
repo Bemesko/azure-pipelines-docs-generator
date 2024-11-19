@@ -8,14 +8,14 @@ import yaml
 @dataclass
 class Parameter:
     name: str
-    type: str
-    default_value: str
-    display_name: str
+    type: Optional[str] = "string"
+    default_value: Optional[str] = None
+    display_name: Optional[str] = None
     allowed_values: Optional[List[str]] = None
 
 
-def main():
-    file_path = Path("sample_templates/docker-build-and-push.yml")
+def load_pipeline_template(template_path: Path) -> list[Parameter]:
+    file_path = template_path
     data = yaml.safe_load(file_path.read_text())
 
     parameters = []
@@ -31,6 +31,14 @@ def main():
             )
         )
 
+    return parameters
+
+
+def main():
+    parameters = load_pipeline_template(
+        Path("sample_templates/docker-build-and-push.yml")
+    )
+    print(parameters)
     pass
 
 
